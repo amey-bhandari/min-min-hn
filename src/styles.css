@@ -1,0 +1,109 @@
+:root {
+    color-scheme: light;
+    --bg: #f2f0eb;
+    --panel: #fffdf7;
+    --text: #1f1b16;
+    --muted: #5f5447;
+    --line: #ddd3c4;
+    --accent: #b84424;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    min-height: 100dvh;
+    padding: 1.25rem 0;
+    font-family:
+        "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+    background: radial-gradient(
+        circle at 20% 20%,
+        #f9f5ec 0,
+        var(--bg) 50%,
+        #e7e0d3 100%
+    );
+    color: var(--text);
+}
+
+.container {
+    width: min(760px, 92vw);
+    margin: 0 auto;
+    padding: 2rem;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+}
+
+h1 {
+    margin: 0;
+    font-size: clamp(2rem, 4vw, 3rem);
+    letter-spacing: 0.02em;
+}
+
+.date-strip {
+    margin-bottom: 1rem;
+}
+
+.date-nav {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 0.75rem;
+    overflow-x: auto;
+    padding-bottom: 0.25rem;
+    white-space: nowrap;
+    font-size: 0.95rem;
+}
+
+.date-nav a {
+    color: var(--muted);
+    text-decoration: none;
+}
+
+.date-nav a:hover {
+    color: var(--text);
+    text-decoration: underline;
+}
+
+.date-nav a.active {
+    color: var(--text);
+    font-weight: 600;
+    text-decoration: underline;
+}
+
+.window-label,
+.status {
+    min-height: 1.2em;
+    color: var(--muted);
+    margin: 0.3rem 0;
+}
+
+.headlines {
+    margin-top: 1rem;
+    padding-left: 1.2rem;
+}
+
+.headlines li {
+    margin: 0.55rem 0;
+    line-height: 1.35;
+}
+
+.headlines a {
+    color: var(--text);
+    text-decoration-color: #c6b08f;
+}
+
+.headlines a:hover {
+    color: var(--accent);
+}
+
+@media (max-width: 560px) {
+    body {
+        padding: 0.75rem 0;
+    }
+
+    .container {
+        padding: 1.1rem;
+    }
+}

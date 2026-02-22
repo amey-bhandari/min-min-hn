@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>min(HN)</title>
+        <link rel="stylesheet" href="styles.css" />
+    </head>
+    <body>
+        <main class="container">
+            <h1>min(HN)</h1>
+
+            <section class="date-strip" aria-label="Story window selector">
+                <nav
+                    id="dateNav"
+                    class="date-nav"
+                    aria-label="Daily windows in Eastern Time"
+                ></nav>
+            </section>
+
+            <p id="windowLabel" class="window-label" aria-live="polite"></p>
+            <p id="status" class="status" aria-live="polite"></p>
+
+            <ol id="headlines" class="headlines"></ol>
+        </main>
+
+        <script src="app.js" defer></script>
+    </body>
+</html>
