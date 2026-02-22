@@ -14,11 +14,10 @@ MINHN is a minimum Hacker News viewer.
 
 ## Run
 
-Because this is a static app, use any simple web server from the `src` folder.
+Because this is a static app, use any simple web server from the repo root and point it at `src`.
 
 ```bash
-cd src
-python3 -m http.server 8000
+python3 -m http.server 8000 --directory src
 ```
 
 Then open [http://localhost:8000](http://localhost:8000).
