@@ -1,8 +1,6 @@
-const API_BASE = "https://hacker-news.firebaseio.com/v0";
-const TOP_STORIES_URL = `${API_BASE}/topstories.json`;
-const ITEM_URL = (id) => `${API_BASE}/item/${id}.json`;
+const HN_SEARCH_URL = "https://hn.algolia.com/api/v1/search_by_date";
 const MAX_HEADLINES = 10;
-const BATCH_SIZE = 25;
+const SEARCH_PAGE_SIZE = 1000;
 const DATE_LINK_DAYS = 7;
 const EASTERN_TIME_ZONE = "America/New_York";
 const MONTH_NAMES = [
@@ -152,8 +150,7 @@ function renderHeadlines(items, { showEmpty = true } = {}) {
 
   if (!items.length && showEmpty) {
     const empty = document.createElement("li");
-    empty.textContent =
-      "No qualifying stories found for that fixed 24-hour window.";
+    empty.textContent = "No stories found for that fixed 24-hour window.";
     headlinesList.appendChild(empty);
     return;
   }
@@ -166,32 +163,80 @@ function renderHeadlines(items, { showEmpty = true } = {}) {
     link.rel = "noopener noreferrer";
     link.textContent = story.title;
     li.appendChild(link);
+    li.appendChild(document.createTextNode(" "));
+
+    const points = document.createElement("span");
+    points.className = "story-points";
+    points.textContent = `(${formatPointsLabel(story.points)})`;
+    li.appendChild(points);
     headlinesList.appendChild(li);
   }
 }
 
-async function fetchItem(id) {
-  const response = await fetch(ITEM_URL(id));
+function formatPointsLabel(points) {
+  return `${points} ${points === 1 ? "point" : "points"}`;
+}
+
+function buildStoriesSearchUrl(dayStartUnix, dayEndUnix, page = 0) {
+  const url = new URL(HN_SEARCH_URL);
+  url.searchParams.set("tags", "story");
+  url.searchParams.set(
+    "numericFilters",
+    `created_at_i>=${dayStartUnix},created_at_i<${dayEndUnix}`,
+  );
+  url.searchParams.set("hitsPerPage", String(SEARCH_PAGE_SIZE));
+  url.searchParams.set("page", String(page));
+  return url;
+}
+
+async function fetchStoriesPage(dayStartUnix, dayEndUnix, page = 0) {
+  const response = await fetch(
+    buildStoriesSearchUrl(dayStartUnix, dayEndUnix, page),
+  );
   if (!response.ok) {
-    throw new Error(`Unable to fetch story ${id}`);
+    throw new Error("Unable to fetch ranked stories");
   }
   return response.json();
 }
 
-function isQualifyingStory(item, dayStartUnix, dayEndUnix) {
-  if (!item) {
-    return false;
+function normalizeStory(hit) {
+  const id = Number(hit.story_id ?? hit.objectID);
+
+  if (!Number.isFinite(id) || typeof hit.title !== "string" || !hit.title) {
+    return null;
   }
 
-  return (
-    item.type === "story" &&
-    !item.deleted &&
-    !item.dead &&
-    typeof item.time === "number" &&
-    typeof item.title === "string" &&
-    item.time >= dayStartUnix &&
-    item.time < dayEndUnix
-  );
+  return {
+    id,
+    title: hit.title,
+    points: typeof hit.points === "number" ? hit.points : 0,
+    createdAtUnix:
+      typeof hit.created_at_i === "number" ? hit.created_at_i : 0,
+  };
+}
+
+function compareStoriesByPoints(left, right) {
+  if (right.points !== left.points) {
+    return right.points - left.points;
+  }
+
+  return right.createdAtUnix - left.createdAtUnix;
+}
+
+async function fetchStoriesForDay(dayStartUnix, dayEndUnix) {
+  const firstPage = await fetchStoriesPage(dayStartUnix, dayEndUnix, 0);
+  const remainingPagePromises = [];
+
+  for (let page = 1; page < firstPage.nbPages; page += 1) {
+    remainingPagePromises.push(fetchStoriesPage(dayStartUnix, dayEndUnix, page));
+  }
+
+  const remainingPages = await Promise.all(remainingPagePromises);
+
+  return [firstPage, ...remainingPages]
+    .flatMap((page) => page.hits)
+    .map(normalizeStory)
+    .filter(Boolean);
 }
 
 async function fetchTopHeadlinesForDay(dateValue) {
@@ -203,40 +248,15 @@ async function fetchTopHeadlinesForDay(dateValue) {
   const dayEndUnix = toUnixSeconds(dayEndMs);
 
   const dayLabel = formatEtDayLabel(dayStartMs);
-  windowLabel.textContent = `Top 10 for ${dayLabel} (ET)`;
-  statusText.textContent = "Loading headlines...";
+  windowLabel.textContent = `Top 10 by points for ${dayLabel} (ET)`;
+  statusText.textContent = "Loading ranked stories...";
   renderHeadlines([], { showEmpty: false });
 
-  const idsResponse = await fetch(TOP_STORIES_URL);
-  if (!idsResponse.ok) {
-    throw new Error("Unable to fetch top story IDs");
-  }
-
-  const topStoryIds = await idsResponse.json();
-  const collected = [];
-
-  for (let index = 0; index < topStoryIds.length; index += BATCH_SIZE) {
-    const batchIds = topStoryIds.slice(index, index + BATCH_SIZE);
-    const batchItems = await Promise.all(
-      batchIds.map((id) => fetchItem(id).catch(() => null)),
-    );
-
-    for (const item of batchItems) {
-      if (isQualifyingStory(item, dayStartUnix, dayEndUnix)) {
-        collected.push(item);
-        if (collected.length === MAX_HEADLINES) {
-          break;
-        }
-      }
-    }
-
-    if (collected.length === MAX_HEADLINES) {
-      break;
-    }
-  }
+  const stories = await fetchStoriesForDay(dayStartUnix, dayEndUnix);
+  stories.sort(compareStoriesByPoints);
 
   statusText.textContent = "";
-  renderHeadlines(collected);
+  renderHeadlines(stories.slice(0, MAX_HEADLINES));
 }
 
 function defaultDateValue() {
