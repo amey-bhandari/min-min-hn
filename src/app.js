@@ -2,7 +2,7 @@ const HN_SEARCH_URL = "https://hn.algolia.com/api/v1/search_by_date";
 const MAX_HEADLINES = 10;
 const SEARCH_PAGE_SIZE = 1000;
 const DATE_LINK_DAYS = 7;
-const EASTERN_TIME_ZONE = "America/New_York";
+const PACIFIC_TIME_ZONE = "America/Los_Angeles";
 const MONTH_NAMES = [
   "Jan",
   "Feb",
@@ -33,9 +33,9 @@ function formatIsoDate({ year, month, day }) {
   return `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
 }
 
-function getEasternDateParts(referenceDate = new Date()) {
+function getPacificDateParts(referenceDate = new Date()) {
   const parts = new Intl.DateTimeFormat("en-CA", {
-    timeZone: EASTERN_TIME_ZONE,
+    timeZone: PACIFIC_TIME_ZONE,
     year: "numeric",
     month: "2-digit",
     day: "2-digit",
@@ -103,9 +103,9 @@ function toUnixSeconds(milliseconds) {
   return Math.floor(milliseconds / 1000);
 }
 
-function formatEtDayLabel(milliseconds) {
+function formatPtDayLabel(milliseconds) {
   return new Intl.DateTimeFormat("en-US", {
-    timeZone: EASTERN_TIME_ZONE,
+    timeZone: PACIFIC_TIME_ZONE,
     weekday: "short",
     month: "short",
     day: "numeric",
@@ -241,14 +241,14 @@ async function fetchStoriesForDay(dayStartUnix, dayEndUnix) {
 
 async function fetchTopHeadlinesForDay(dateValue) {
   const nextDate = shiftIsoDate(dateValue, 1);
-  const dayStartMs = zonedMidnightToUtcMs(dateValue, EASTERN_TIME_ZONE);
-  const dayEndMs = zonedMidnightToUtcMs(nextDate, EASTERN_TIME_ZONE);
+  const dayStartMs = zonedMidnightToUtcMs(dateValue, PACIFIC_TIME_ZONE);
+  const dayEndMs = zonedMidnightToUtcMs(nextDate, PACIFIC_TIME_ZONE);
 
   const dayStartUnix = toUnixSeconds(dayStartMs);
   const dayEndUnix = toUnixSeconds(dayEndMs);
 
-  const dayLabel = formatEtDayLabel(dayStartMs);
-  windowLabel.textContent = `Top 10 by points for ${dayLabel} (ET)`;
+  const dayLabel = formatPtDayLabel(dayStartMs);
+  windowLabel.textContent = `Top 10 by points for ${dayLabel} (PT)`;
   statusText.textContent = "Loading ranked stories...";
   renderHeadlines([], { showEmpty: false });
 
@@ -260,7 +260,7 @@ async function fetchTopHeadlinesForDay(dateValue) {
 }
 
 function defaultDateValue() {
-  const todayParts = getEasternDateParts();
+  const todayParts = getPacificDateParts();
   return formatIsoDate(todayParts);
 }
 
@@ -288,8 +288,8 @@ dateNav.addEventListener("click", async (event) => {
   }
 });
 
-const etToday = formatIsoDate(getEasternDateParts());
-buildDateLinks(etToday);
+const ptToday = formatIsoDate(getPacificDateParts());
+buildDateLinks(ptToday);
 
 selectedDateValue = defaultDateValue();
 setActiveDateLink(selectedDateValue);

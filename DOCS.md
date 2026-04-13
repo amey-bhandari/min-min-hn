@@ -9,8 +9,8 @@ MINHN is a minimum Hacker News viewer.
 - Single page only.
 - Shows only a list of links to Hacker News discussion pages with point totals.
 - No comment counts, author names, or other metadata.
-- Displays up to 10 stories from a fixed 24-hour window (midnight-to-midnight, Eastern Time), ranked by points descending.
-- Date selection is a plain horizontal row of day links for the latest 7 ET days, not a date picker.
+- Displays up to 10 stories from a fixed 24-hour window (midnight-to-midnight, Pacific Time), ranked by points descending.
+- Date selection is a plain horizontal row of day links for the latest 7 PT days, not a date picker.
 
 ## Run
 
@@ -45,5 +45,5 @@ Uses the public Hacker News search index:
 
 Implementation detail:
 
-- MINHN fetches all stories whose `created_at_i` falls inside the selected fixed day window in Eastern Time (`America/New_York`, with DST handled automatically), sorts them by `points` descending, and displays the top 10.
+- MINHN fetches all stories whose `created_at_i` falls inside the selected fixed day window in Pacific Time (`America/Los_Angeles`, with DST handled automatically), sorts them by `points` descending, and displays the top 10.
 - Rankings reflect the stories' current HN points, not a historical end-of-day score snapshot.
