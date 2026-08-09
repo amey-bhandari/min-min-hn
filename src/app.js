@@ -1,7 +1,7 @@
 const HN_SEARCH_URL = "https://hn.algolia.com/api/v1/search_by_date";
-const MAX_HEADLINES = 10;
+const MAX_HEADLINES = 15;
 const SEARCH_PAGE_SIZE = 1000;
-const DATE_LINK_DAYS = 7;
+const DATE_LINK_DAYS = 3;
 const PACIFIC_TIME_ZONE = "America/Los_Angeles";
 const MONTH_NAMES = [
   "Jan",
@@ -19,9 +19,10 @@ const MONTH_NAMES = [
 ];
 
 const dateNav = document.getElementById("dateNav");
-const windowLabel = document.getElementById("windowLabel");
 const statusText = document.getElementById("status");
+const sessionTimer = document.getElementById("sessionTimer");
 const headlinesList = document.getElementById("headlines");
+const sessionStartedAt = Date.now();
 let selectedDateValue = "";
 
 function parseIsoDate(dateValue) {
@@ -103,15 +104,6 @@ function toUnixSeconds(milliseconds) {
   return Math.floor(milliseconds / 1000);
 }
 
-function formatPtDayLabel(milliseconds) {
-  return new Intl.DateTimeFormat("en-US", {
-    timeZone: PACIFIC_TIME_ZONE,
-    weekday: "short",
-    month: "short",
-    day: "numeric",
-  }).format(new Date(milliseconds));
-}
-
 function formatDateLinkLabel(dateValue) {
   const { month, day } = parseIsoDate(dateValue);
   return `${MONTH_NAMES[month - 1]} ${day}`;
@@ -145,6 +137,51 @@ function setActiveDateLink(dateValue) {
   }
 }
 
+function normalizeArticleUrl(value) {
+  if (typeof value !== "string" || !value) {
+    return "";
+  }
+
+  try {
+    const url = new URL(value);
+    return url.protocol === "http:" || url.protocol === "https:"
+      ? url.href
+      : "";
+  } catch {
+    return "";
+  }
+}
+
+function getStorySource(url) {
+  if (!url) {
+    return "news.ycombinator.com";
+  }
+
+  return new URL(url).hostname.replace(/^www\./, "");
+}
+
+function setStatus(message, { inProgress = false } = {}) {
+  statusText.textContent = message;
+  statusText.classList.toggle("in-progress", inProgress);
+}
+
+function formatElapsedTime(milliseconds) {
+  const totalSeconds = Math.max(0, Math.floor(milliseconds / 1000));
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+
+  if (hours > 0) {
+    return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+  }
+
+  return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+}
+
+function updateSessionTimer() {
+  sessionTimer.textContent = formatElapsedTime(Date.now() - sessionStartedAt);
+}
+
 function renderHeadlines(items, { showEmpty = true } = {}) {
   headlinesList.textContent = "";
 
@@ -158,23 +195,22 @@ function renderHeadlines(items, { showEmpty = true } = {}) {
   for (const story of items) {
     const li = document.createElement("li");
     const link = document.createElement("a");
-    link.href = `https://news.ycombinator.com/item?id=${story.id}`;
+    link.href = story.url || `https://news.ycombinator.com/item?id=${story.id}`;
     link.target = "_blank";
     link.rel = "noopener noreferrer";
     link.textContent = story.title;
     li.appendChild(link);
     li.appendChild(document.createTextNode(" "));
 
-    const points = document.createElement("span");
-    points.className = "story-points";
-    points.textContent = `(${formatPointsLabel(story.points)})`;
-    li.appendChild(points);
+    const source = document.createElement("span");
+    source.className = "story-source";
+    source.textContent = `(${story.source})`;
+    source.title = `Article source: ${story.source}`;
+    li.appendChild(source);
+    li.appendChild(document.createTextNode(" "));
+
     headlinesList.appendChild(li);
   }
-}
-
-function formatPointsLabel(points) {
-  return `${points} ${points === 1 ? "point" : "points"}`;
 }
 
 function buildStoriesSearchUrl(dayStartUnix, dayEndUnix, page = 0) {
@@ -206,9 +242,13 @@ function normalizeStory(hit) {
     return null;
   }
 
+  const url = normalizeArticleUrl(hit.url);
+
   return {
     id,
     title: hit.title,
+    url,
+    source: getStorySource(url),
     points: typeof hit.points === "number" ? hit.points : 0,
     createdAtUnix:
       typeof hit.created_at_i === "number" ? hit.created_at_i : 0,
@@ -247,21 +287,25 @@ async function fetchTopHeadlinesForDay(dateValue) {
   const dayStartUnix = toUnixSeconds(dayStartMs);
   const dayEndUnix = toUnixSeconds(dayEndMs);
 
-  const dayLabel = formatPtDayLabel(dayStartMs);
-  windowLabel.textContent = `Top 10 by points for ${dayLabel} (PT)`;
-  statusText.textContent = "Loading ranked stories...";
+  if (Date.now() < dayEndMs) {
+    setStatus("day in progress", { inProgress: true });
+    renderHeadlines([], { showEmpty: false });
+    return;
+  }
+
+  setStatus("Loading ranked stories...");
   renderHeadlines([], { showEmpty: false });
 
   const stories = await fetchStoriesForDay(dayStartUnix, dayEndUnix);
   stories.sort(compareStoriesByPoints);
 
-  statusText.textContent = "";
+  setStatus("");
   renderHeadlines(stories.slice(0, MAX_HEADLINES));
 }
 
 function defaultDateValue() {
   const todayParts = getPacificDateParts();
-  return formatIsoDate(todayParts);
+  return shiftIsoDate(formatIsoDate(todayParts), -1);
 }
 
 dateNav.addEventListener("click", async (event) => {
@@ -282,18 +326,23 @@ dateNav.addEventListener("click", async (event) => {
   try {
     await fetchTopHeadlinesForDay(selectedDateValue);
   } catch (error) {
-    statusText.textContent =
-      error instanceof Error ? error.message : "Failed to load headlines.";
+    setStatus(
+      error instanceof Error ? error.message : "Failed to load headlines.",
+    );
     renderHeadlines([]);
   }
 });
 
 const ptToday = formatIsoDate(getPacificDateParts());
-buildDateLinks(ptToday);
+buildDateLinks(shiftIsoDate(ptToday, -1));
 
 selectedDateValue = defaultDateValue();
 setActiveDateLink(selectedDateValue);
+updateSessionTimer();
+setInterval(updateSessionTimer, 1000);
+document.addEventListener("visibilitychange", updateSessionTimer);
 fetchTopHeadlinesForDay(selectedDateValue).catch((error) => {
-  statusText.textContent =
-    error instanceof Error ? error.message : "Failed to load headlines.";
+  setStatus(
+    error instanceof Error ? error.message : "Failed to load headlines.",
+  );
 });

@@ -1,11 +1,9 @@
 :root {
     color-scheme: light;
-    --bg: #f2f0eb;
-    --panel: #fffdf7;
-    --text: #1f1b16;
-    --muted: #5f5447;
-    --line: #ddd3c4;
-    --accent: #b84424;
+    --bg: #eef3f8;
+    --text: #172033;
+    --muted: #64748b;
+    --accent: #2563eb;
 }
 
 * {
@@ -15,35 +13,39 @@
 body {
     margin: 0;
     min-height: 100dvh;
-    padding: 1.25rem 0;
-    font-family:
-        "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
-    background: radial-gradient(
-        circle at 20% 20%,
-        #f9f5ec 0,
-        var(--bg) 50%,
-        #e7e0d3 100%
-    );
+    padding: 4rem 1.5rem 2rem;
+    display: flex;
+    flex-direction: column;
+    font-family: ui-rounded, "Avenir Next", "Segoe UI", sans-serif;
+    background: var(--bg);
     color: var(--text);
 }
 
 .container {
-    width: min(760px, 92vw);
+    width: min(820px, 88vw);
     margin: 0 auto;
-    padding: 2rem;
-    background: var(--panel);
-    border: 1px solid var(--line);
-    border-radius: 14px;
+    flex: 1;
+}
+
+.brand-row {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 2rem;
 }
 
 h1 {
-    margin: 0;
-    font-size: clamp(2rem, 4vw, 3rem);
-    letter-spacing: 0.02em;
+    margin: 0 0 1rem;
+    font-family: "Arial Rounded MT Bold", "Trebuchet MS", ui-rounded, "Segoe UI", sans-serif;
+    font-size: clamp(2.4rem, 5vw, 3.6rem);
+    font-weight: 800;
+    letter-spacing: -0.06em;
+    line-height: 1;
+    color: var(--accent);
 }
 
 .date-strip {
-    margin-bottom: 1rem;
+    margin-bottom: 0;
 }
 
 .date-nav {
@@ -59,6 +61,7 @@ h1 {
 .date-nav a {
     color: var(--muted);
     text-decoration: none;
+    transition: color 120ms ease;
 }
 
 .date-nav a:hover {
@@ -67,48 +70,99 @@ h1 {
 }
 
 .date-nav a.active {
-    color: var(--text);
+    color: var(--accent);
     font-weight: 600;
     text-decoration: underline;
+    text-underline-offset: 0.2rem;
 }
 
-.window-label,
 .status {
     min-height: 1.2em;
     color: var(--muted);
-    margin: 0.3rem 0;
+    margin: 0.45rem 0;
+}
+
+.status:empty {
+    display: none;
+}
+
+.status.in-progress {
+    margin: 1.5rem 0 2rem;
+    font-family: "Arial Rounded MT Bold", "Trebuchet MS", ui-rounded, "Segoe UI", sans-serif;
+    font-size: clamp(2.4rem, 5vw, 3.6rem);
+    font-weight: 800;
+    letter-spacing: -0.06em;
+    line-height: 1;
+    color: var(--accent);
+}
+
+.session-timer {
+    flex: 0 0 auto;
+    margin: 0;
+    padding-top: 0.12em;
+    color: #000;
+    font-family: "Arial Rounded MT Bold", "Trebuchet MS", ui-rounded, "Segoe UI", sans-serif;
+    font-size: clamp(2.4rem, 5vw, 3.6rem);
+    font-weight: 800;
+    letter-spacing: -0.06em;
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+    text-align: right;
 }
 
 .headlines {
-    margin-top: 1rem;
+    margin-top: 0;
     padding-left: 1.2rem;
 }
 
 .headlines li {
-    margin: 0.55rem 0;
+    margin: 1.35rem 0;
     line-height: 1.35;
 }
 
 .headlines a {
     color: var(--text);
-    text-decoration-color: #c6b08f;
+    text-decoration-color: #93c5fd;
+    text-decoration-thickness: 0.1em;
+    text-underline-offset: 0.15em;
 }
 
 .headlines a:hover {
     color: var(--accent);
 }
 
-.story-points {
+.headlines a:visited {
+    color: #b6bcc6;
+}
+
+.story-source {
     color: var(--muted);
-    font-size: 0.95rem;
+    font-size: 0.88rem;
+}
+
+.site-footer {
+    width: min(820px, 88vw);
+    margin: 5rem auto 0;
+    color: var(--muted);
+    font-size: 0.85rem;
+    line-height: 1.5;
+}
+
+.site-footer a {
+    color: var(--accent);
 }
 
 @media (max-width: 560px) {
     body {
-        padding: 0.75rem 0;
+        padding: 2rem 0.75rem 1.25rem;
     }
 
-    .container {
-        padding: 1.1rem;
+    .brand-row {
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+
+    .session-timer {
+        margin-left: auto;
     }
 }

@@ -3,12 +3,15 @@
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>min(HN)</title>
+        <title>min(min(HN))</title>
         <link rel="stylesheet" href="styles.css" />
     </head>
     <body>
         <main class="container">
-            <h1>min(HN)</h1>
+            <div class="brand-row">
+                <h1>min(min(HN))</h1>
+                <p id="sessionTimer" class="session-timer" aria-live="off"></p>
+            </div>
 
             <section class="date-strip" aria-label="Story window selector">
                 <nav
@@ -18,11 +21,16 @@
                 ></nav>
             </section>
 
-            <p id="windowLabel" class="window-label" aria-live="polite"></p>
             <p id="status" class="status" aria-live="polite"></p>
 
             <ol id="headlines" class="headlines"></ol>
         </main>
+
+        <footer class="site-footer">
+            fork of
+            <a href="https://github.com/pmxi/minhn" target="_blank" rel="noopener noreferrer">min(HN)</a>.
+            thanks for the inspiration
+        </footer>
 
         <script src="app.js" defer></script>
     </body>
