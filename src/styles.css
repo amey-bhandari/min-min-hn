@@ -76,32 +76,6 @@ h1 {
     text-underline-offset: 0.2rem;
 }
 
-.filter-bar {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 0.45rem;
-    margin-top: 0.65rem;
-    color: var(--muted);
-    font-size: 0.82rem;
-}
-
-.filter-bar button {
-    padding: 0.25rem 0.5rem;
-    border: 0;
-    border-radius: 999px;
-    background: transparent;
-    color: var(--muted);
-    cursor: pointer;
-    font: inherit;
-}
-
-.filter-bar button:hover,
-.filter-bar button.active {
-    background: #dbeafe;
-    color: var(--accent);
-}
-
 .status {
     min-height: 1.2em;
     color: var(--muted);
@@ -164,61 +138,6 @@ h1 {
 .story-source {
     color: var(--muted);
     font-size: 0.88rem;
-}
-
-.story-label {
-    display: inline-block;
-    padding: 0.12rem 0.42rem;
-    border-radius: 999px;
-    font-size: 0.72rem;
-    font-weight: 700;
-    line-height: 1.2;
-    vertical-align: 0.08em;
-}
-
-.story-label.is-news {
-    background: #dbeafe;
-    color: #1d4ed8;
-}
-
-.story-label.is-blog {
-    background: #e2e8f0;
-    color: #475569;
-}
-
-.story-feedback {
-    display: inline;
-    color: var(--muted);
-    font-size: 0.78rem;
-}
-
-.story-feedback summary {
-    display: inline;
-    cursor: pointer;
-    text-underline-offset: 0.15em;
-}
-
-.story-feedback summary:hover {
-    color: var(--accent);
-    text-decoration: underline;
-}
-
-.feedback-options {
-    display: inline-flex;
-    flex-wrap: wrap;
-    gap: 0.3rem;
-    margin-left: 0.35rem;
-}
-
-.feedback-options button {
-    padding: 0;
-    border: 0;
-    background: transparent;
-    color: var(--accent);
-    cursor: pointer;
-    font: inherit;
-    text-decoration: underline;
-    text-underline-offset: 0.15em;
 }
 
 .site-footer {
